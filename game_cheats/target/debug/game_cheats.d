@@ -1,0 +1,1 @@
+D:\Documents\Durak\game_cheats\target\debug\game_cheats.exe: D:\Documents\Durak\game_cheats\src\main.rs D:\Documents\Durak\game_logic\src\card.rs D:\Documents\Durak\game_logic\src\game_manager.rs D:\Documents\Durak\game_logic\src\lib.rs D:\Documents\Durak\game_logic\src\player.rs

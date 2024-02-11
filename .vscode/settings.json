@@ -1,0 +1,5 @@
+{
+    "rust-analyzer.linkedProjects": [
+        ".\\game_logic\\Cargo.toml"
+    ]
+}
