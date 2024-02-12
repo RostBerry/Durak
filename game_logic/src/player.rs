@@ -18,6 +18,8 @@ impl Player {
     }
 
     pub fn get_move(&mut self) -> &Card {
+        self.print_deck();
+        println!("Enter card: ");
         let mut input = String::new();
         io::stdin()
             .read_line(&mut input)
@@ -31,15 +33,42 @@ impl Player {
 
         match parse_result {
             Ok(value) => {
-                println!("good");
                 index = value;
             }
             Err(_) => {
                 println!("not good");
-                index = usize::MAX;
+                panic!();
             }
         }
-        println!("Card suit: {}", self.all_cards[index].suit());
         &self.all_cards[index]
+    }
+
+    pub fn print_deck(&self) {
+        for _card in self.all_cards.iter() {
+            print!("----- ");
+        }
+        println!();
+        for _card in self.all_cards.iter() {
+            print!("|   | ");
+        }
+        println!();
+        for card in self.all_cards.iter() {
+            print!("| {} | ", card.to_string());
+        }
+        println!();
+        for _card in self.all_cards.iter() {
+            print!("|   | ");
+        }
+        println!();
+        for _card in self.all_cards.iter() {
+            print!("----- ");
+        }
+        println!();
+        let mut index = 0;
+        while index < self.all_cards.len() {
+            print!("  {}   ", index);
+            index += 1;
+        }
+        println!();
     }
 }
