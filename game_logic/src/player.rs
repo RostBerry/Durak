@@ -17,7 +17,18 @@ impl Player {
         self.all_cards.push(card);
     }
 
-    pub fn get_move(&mut self) -> &Card {
+    // pub fn take_card_away(&mut self, card_to_remove: &Card) -> Card {
+    //     let mut index = 0;
+    //     while index < self.all_cards.len() {
+    //         if *card_to_remove == self.all_cards[index] {
+    //             return self.all_cards.remove(index);
+    //         }
+    //         index += 1;
+    //     }
+    //     panic!();
+    // }
+
+    pub fn get_move(&mut self) -> Card {
         self.print_deck();
         println!("Enter card: ");
         let mut input = String::new();
@@ -40,33 +51,49 @@ impl Player {
                 panic!();
             }
         }
-        &self.all_cards[index]
+        self.all_cards.remove(index)
     }
 
     pub fn print_deck(&self) {
         for _card in self.all_cards.iter() {
-            print!("----- ");
+            print!("-------------- ");
         }
         println!();
         for _card in self.all_cards.iter() {
-            print!("|   | ");
+            print!("|            | ");
+        }
+        println!();
+        for _card in self.all_cards.iter() {
+            print!("|            | ");
+        }
+        println!();
+        for _card in self.all_cards.iter() {
+            print!("|            | ");
         }
         println!();
         for card in self.all_cards.iter() {
-            print!("| {} | ", card.to_string());
+            print!("|{:^12}| ", card.to_string());
         }
         println!();
         for _card in self.all_cards.iter() {
-            print!("|   | ");
+            print!("|            | ");
         }
         println!();
         for _card in self.all_cards.iter() {
-            print!("----- ");
+            print!("|            | ");
+        }
+        println!();
+        for _card in self.all_cards.iter() {
+            print!("|            | ");
+        }
+        println!();
+        for _card in self.all_cards.iter() {
+            print!("-------------- ");
         }
         println!();
         let mut index = 0;
         while index < self.all_cards.len() {
-            print!("  {}   ", index);
+            print!("{:^14} ", index);
             index += 1;
         }
         println!();

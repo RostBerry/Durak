@@ -30,7 +30,7 @@ impl GameManager {
     pub fn run_game(&mut self) {        
         let mut iteration_count: u8 = 0;
 
-        while iteration_count < 6 {
+        while iteration_count < 6 { //Cards giveaway
             for player in self.all_players.iter_mut() {
                 if let Some(card) = self.card_stack.pop() {
                     player.give_card(card);
@@ -39,40 +39,49 @@ impl GameManager {
             iteration_count += 1;
         }
         
-        match self.card_stack.first() {
+        match self.card_stack.first() { //Letting know the players about the last card in the deck
             Some(card) => {
-                println!("Last card: {}", card.to_string());
+                println!("\nLast card: {}\n", card);
                 self.trump_suit = card.suit();
             },
             None => panic!()
         }
 
         let mut index: i8 = 0;
-        loop {
+        loop { //game loop
             let mut cards_thrown: u8 = 0;
-            while !self.all_players[Self::clamp(index + 1)].all_cards.is_empty() || 
-                    if self.is_first_beat { cards_thrown < 5 } else { cards_thrown < 6 } {
-                let attack: &Card = self.all_players[Self::clamp(index)].get_move();
-                println!("{}", attack.to_string());
-                let defence: &Card = self.all_players[Self::clamp(index + 1)].get_move();
-                println!("{}", defence.to_string());
+            let mut all_cards_thrown: Vec<Card> = Vec::new();
+            while !self.all_players[Self::clamp(index + 1, self.all_players.len())].all_cards.is_empty() &&
+                    if self.is_first_beat { cards_thrown < 4 } else { cards_thrown < 5 } {
+                
+                let attacker_index = Self::clamp(index, self.all_players.len());
+                let defender_index = Self::clamp(index + 1, self.all_players.len());
+
+                println!("Player {} to move", attacker_index + 1);
+                let attack: Card = self.all_players[attacker_index].get_move();
+                println!("\n{}\n", attack);
+                all_cards_thrown.push(attack);
+
                 cards_thrown += 1;
+
+                println!("Player {} to defend", defender_index + 1);
+                let defence: Card = self.all_players[defender_index].get_move();
+                println!("\n{}\n", defence);
+                all_cards_thrown.push(defence);
+
             }
 
 
-            index += 1;
-            if index >= 6 {
-                index = 0;
-            }
+            index = Self::clamp(index + 1, self.all_players.len()) as i8;
         }
         
     }
 
-    fn clamp(num: i8) -> usize {
+    fn clamp(num: i8, player_count: usize) -> usize { //prevents index out of bounds in game loop
         let result: usize = if num >= 0 {
-            num as usize % 6
+            num as usize % player_count
         } else {
-            (6 - ((-num) as usize % 6)) % 6
+            (player_count - ((-num) as usize % player_count)) % player_count
         };
         
         result

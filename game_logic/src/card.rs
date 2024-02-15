@@ -1,3 +1,5 @@
+use core::fmt;
+
 
 
 #[derive(Debug)]
@@ -102,8 +104,8 @@ impl Ord for Card {
     }
 }
 
-impl ToString for Card {
-    fn to_string(&self) -> String {
-        format!("{} {} ", Self::to_suit_name(self.suit()), Self::to_card_name(self.number()))
+impl fmt::Display for Card {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {}", Self::to_suit_name(self.suit()), Self::to_card_name(self.number()))
     }
 }

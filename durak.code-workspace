@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "game_logic"
+		},
+		{
+			"path": "game_cheats"
+		}
+	],
+	"settings": {
+		"rust-analyzer.linkedProjects": [
+			".\\game_logic\\Cargo.toml"
+		]
+	}
+}
