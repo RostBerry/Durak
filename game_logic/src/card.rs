@@ -1,15 +1,19 @@
 use core::fmt;
+use std::{collections::{hash_map, HashMap}, fmt::format, ops::Index};
+
+use ansi_term::{ANSIGenericString, Color};
 
 
 
 #[derive(Debug)]
 pub struct Card {
-    value: u8 /*
+    value: u8, /*
     value looks like this:
 
          suit  trump buf  number
     0     11       0       1111
      */
+    output_rows: [String; 11], // contains what user will see as representation of the card in terminal
 }
 
 pub enum CardCount {
@@ -27,6 +31,9 @@ impl Card {
 
     const SUITS: [&'static str; 4] = ["clubs", "spades", "hearts", "diamonds"];
     const NAMES: [&'static str; 13] = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+
+    const BIN_TO_SUIT: [&'static str; 4] = ["♣", "♠", "♥", "♦"];
+
 
     fn clear_number(&mut self) {
         self.value &= Self::NUMBER_MASK_NEGATIVE;
@@ -63,15 +70,22 @@ impl Card {
     }
 
     pub fn new() -> Card {
-        Card {value: 0}
+        let mut card: Card = Card {value: 0, output_rows: Default::default() };
+        card.generate_output_rows();
+        card
     }
 
     pub fn from_value(value: u8) -> Card {
-        Card {value}
+        let mut card: Card = Card {value, output_rows: Default::default()};
+        card.generate_output_rows();
+        card
     }
 
     pub fn from_args(suit: &u8, number: &u8) -> Card {
-        Card {value: Self::num_to_suit(suit) | Self::bool_to_trump(&false) | number}
+        let mut card: Card = Card {value: Self::num_to_suit(suit) | Self::bool_to_trump(&false) | number, output_rows: Default::default()};
+        card.generate_output_rows();
+        card
+
     }
 
     pub fn to_suit_name(suit: u8) -> &'static str {
@@ -80,6 +94,39 @@ impl Card {
 
     pub fn to_card_name(number: u8) -> &'static str {
         Self::NAMES[(number - 1) as usize]
+    }
+
+    fn generate_output_rows(&mut self) {
+        let white = Color::White;
+        let color = if self.suit() > 1 {Color::Red} else {Color::Blue};
+
+        let suit_sym = Self::BIN_TO_SUIT[self.suit() as usize];
+        let number = Self::NAMES[self.number() as usize - 1];
+        let number_painted = format!("{}", color.paint(number));
+        let dot_painted = format!("{}", white.paint("."));
+        let suit_sym_painted = format!("{}", color.paint(suit_sym));
+        self.output_rows[0] = format!("{}", white.paint(String::from("┌──────────────┐")));
+
+        let more_than_three = format!("{}", if self.number() > 2 && self.number() < 10 {&suit_sym_painted} else {&dot_painted});
+        let two_or_three = format!("{}", if self.number() > 0 && self.number() < 3 {&suit_sym_painted} else {&dot_painted});
+        let seven_or_ten = format!("{}", if self.number() == 6 || self.number() == 9 {&suit_sym_painted} else {&dot_painted});
+        let more_than_7 = format!("{}", if self.number() > 6 && self.number() < 10 {&suit_sym_painted} else {&dot_painted});
+        let ten = format!("{}", if self.number() == 9 {&suit_sym_painted} else {&dot_painted});
+        let center = format!("{}", if self.number() == 8 || self.number() == 2 || self.number() == 4 {&suit_sym_painted} else 
+        { if self.number() > 9 {&number_painted} else {&dot_painted}});
+        let six_or_seven = format!("{}", if self.number() == 5 || self.number() == 6 {&suit_sym_painted} else {&dot_painted});
+
+        self.output_rows[1] = format!("│{}{}. . . . . . │", number_painted, if self.number() == 9 {""} else {" "});
+        self.output_rows[2] = format!("│{} {} . {} . {} . │", suit_sym_painted, more_than_three, two_or_three, more_than_three);
+        self.output_rows[3] = format!("│. . . {} . . . │", seven_or_ten);
+        self.output_rows[4] = format!("│. {} . . . {} . │", more_than_7, more_than_7);
+        self.output_rows[5] = format!("│. {} . {} . {} . │", six_or_seven, center, six_or_seven);
+        self.output_rows[6] = format!("│. {} . . . {} . │", more_than_7, more_than_7);
+        self.output_rows[7] = format!("│. . . {} . . . │", ten);
+        self.output_rows[8] = format!("│. {} . {} . {} {} │", more_than_three, two_or_three, more_than_three, suit_sym_painted);
+        self.output_rows[9] = format!("│. . . . . . {}{}│", number_painted, if self.number() == 9 {""} else {" "});
+        self.output_rows[10] = String::from("└──────────────┘");
+
     }
 
 }
@@ -107,5 +154,13 @@ impl Ord for Card {
 impl fmt::Display for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} {}", Self::to_suit_name(self.suit()), Self::to_card_name(self.number()))
+    }
+}
+
+impl Index<usize> for Card {
+    type Output = String;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.output_rows[index]
     }
 }

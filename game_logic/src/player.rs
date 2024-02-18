@@ -1,6 +1,8 @@
 use std::io;
 
-use crate::card::Card;
+use ansi_term::Color;
+
+use crate::{card::Card, game_manager::Action};
 
 #[derive(Debug)]
 pub struct Player {
@@ -17,84 +19,150 @@ impl Player {
         self.all_cards.push(card);
     }
 
-    // pub fn take_card_away(&mut self, card_to_remove: &Card) -> Card {
-    //     let mut index = 0;
-    //     while index < self.all_cards.len() {
-    //         if *card_to_remove == self.all_cards[index] {
-    //             return self.all_cards.remove(index);
-    //         }
-    //         index += 1;
-    //     }
-    //     panic!();
-    // }
-
-    pub fn get_move(&mut self) -> Card {
+    pub fn get_move_as_third(&mut self) -> Action {
         self.print_deck();
-        println!("Enter card: ");
-        let mut input = String::new();
-        io::stdin()
-            .read_line(&mut input)
-            .expect("Error reading line");
-
-        let input = input.trim();
-
-        let parse_result: Result<usize, _> = input.parse();
-
-        let index: usize;
-
-        match parse_result {
-            Ok(value) => {
-                index = value;
+        println!("Type \"attack <card index>\"/\"check\"/\"resign\"");
+        loop {
+            let mut input = String::new();
+            std::io::stdin().read_line(&mut input).expect("Failed to read line");
+            let input = input.trim().to_ascii_lowercase();
+    
+            if input == "check" {
+                return Action::Check;
+            } 
+            if input == "resign" {
+                return Action::Resign;
             }
-            Err(_) => {
-                println!("not good");
-                panic!();
+            if input.starts_with("attack") {
+                let parts: Vec<&str> = input.split_whitespace().collect();
+                if parts.len() != 2 {
+                    println!("Invalid input, please try again.");
+                    continue;
+                }
+                let index = match parts[1].parse::<usize>() {
+                    Ok(i) => i,
+                    Err(_) => {
+                        println!("Invalid input, please enter a valid card index.");
+                        continue;
+                    }
+                };
+                if index >= self.all_cards.len() {
+                    println!("Invalid index, please enter a valid card index.");
+                    continue;
+                }
+                return Action::Attack(self.all_cards.remove(index));
             }
+            println!("Invalid input, please try again.");
         }
-        self.all_cards.remove(index)
+    }
+
+    pub fn get_move_as_attacker(&mut self) -> Action {
+        self.print_deck();
+        println!("Type \"attack <card index>\"/\"resign\"");
+        loop {
+            let mut input = String::new();
+            std::io::stdin().read_line(&mut input).expect("Failed to read line");
+            let input = input.trim().to_ascii_lowercase();
+            if input == "resign" {
+                return Action::Resign;
+            }
+            if input.starts_with("attack") {
+                let parts: Vec<&str> = input.split_whitespace().collect();
+                if parts.len() != 2 {
+                    println!("Invalid input, please try again.");
+                    continue;
+                }
+                let index = match parts[1].parse::<usize>() {
+                    Ok(i) => i,
+                    Err(_) => {
+                        println!("Invalid input, please enter a valid card index.");
+                        continue;
+                    }
+                };
+                if index >= self.all_cards.len() {
+                    println!("Invalid index, please enter a valid card index.");
+                    continue;
+                }
+                return Action::Attack(self.all_cards.remove(index));
+            }
+            println!("Invalid input, please try again.");
+        }
+    }
+
+    pub fn get_move_as_defender(&mut self, can_be_defended: bool, can_be_transfered: bool) -> Action {
+        self.print_deck();
+        println!("Type \"respond <card index>\"/\"transfer <card index>\"/\"take\"/\"resign\"");
+        loop {
+            let mut input = String::new();
+            std::io::stdin().read_line(&mut input).expect("Failed to read line");
+            let input = input.trim().to_ascii_lowercase();
+    
+            if input == "take" {
+                return Action::Take;
+            } 
+            if input == "resign" {
+                return Action::Resign;
+            }
+            if input.starts_with("respond") {
+                if !can_be_defended {
+                    println!("You cannot respond to the attack now");
+                    continue;
+                }
+                let parts: Vec<&str> = input.split_whitespace().collect();
+                if parts.len() != 2 {
+                    println!("Invalid input, please try again.");
+                    continue;
+                }
+                let index = match parts[1].parse::<usize>() {
+                    Ok(i) => i,
+                    Err(_) => {
+                        println!("Invalid input, please enter a valid card index.");
+                        continue;
+                    }
+                };
+                if index >= self.all_cards.len() {
+                    println!("Invalid index, please enter a valid card index.");
+                    continue;
+                }
+                return Action::Defend(self.all_cards.remove(index));
+            }
+            if input.starts_with("transfer") {
+                if !can_be_transfered {
+                    println!("You cannot transfer card now");
+                    continue;
+                }
+                let parts: Vec<&str> = input.split_whitespace().collect();
+                if parts.len() != 2 {
+                    println!("Invalid input, please try again.");
+                    continue;
+                }
+                let index = match parts[1].parse::<usize>() {
+                    Ok(i) => i,
+                    Err(_) => {
+                        println!("Invalid input, please enter a valid card index.");
+                        continue;
+                    }
+                };
+                if index >= self.all_cards.len() {
+                    println!("Invalid index, please enter a valid card index.");
+                    continue;
+                }
+                return Action::Transfer(self.all_cards.remove(index));
+            }
+            println!("Invalid input, please try again.");
+        }
     }
 
     pub fn print_deck(&self) {
-        for _card in self.all_cards.iter() {
-            print!("-------------- ");
+
+        for i in 0..11 {
+            for card in self.all_cards.iter() {
+                print!("{} ", card[i]);
+            }
+            println!();
         }
-        println!();
-        for _card in self.all_cards.iter() {
-            print!("|            | ");
-        }
-        println!();
-        for _card in self.all_cards.iter() {
-            print!("|            | ");
-        }
-        println!();
-        for _card in self.all_cards.iter() {
-            print!("|            | ");
-        }
-        println!();
-        for card in self.all_cards.iter() {
-            print!("|{:^12}| ", card.to_string());
-        }
-        println!();
-        for _card in self.all_cards.iter() {
-            print!("|            | ");
-        }
-        println!();
-        for _card in self.all_cards.iter() {
-            print!("|            | ");
-        }
-        println!();
-        for _card in self.all_cards.iter() {
-            print!("|            | ");
-        }
-        println!();
-        for _card in self.all_cards.iter() {
-            print!("-------------- ");
-        }
-        println!();
-        let mut index = 0;
-        while index < self.all_cards.len() {
-            print!("{:^14} ", index);
-            index += 1;
+        for i in 0..self.all_cards.len() {
+            print!("{:^16} ", i);
         }
         println!();
     }
