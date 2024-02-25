@@ -107,7 +107,8 @@ impl GameManager {
                 }
                 
                 
-                for unresponded_attack_index in 0..unresponded_attacks.len() {
+                let mut unresponded_attack_index = 0;
+                while unresponded_attack_index < unresponded_attacks.len() {
                     println!("Player {} to defend from {}", defender_index + 1, unresponded_attacks[unresponded_attack_index]);
                     match self.all_players[defender_index].get_move_as_defender(true, can_be_transfered) {
                         Action::Take => {
@@ -123,7 +124,8 @@ impl GameManager {
                             all_cards_thrown.push(unresponded_attacks.remove(unresponded_attack_index));
                             cards_thrown += 1;
                             can_be_transfered = false;
-                        } Action::Transfer(transfer) => {
+                        } 
+                        Action::Transfer(transfer) => {
                             println!("Player {} transfers {} to player {}", defender_index + 1, transfer, defender_index + 2);
                             unresponded_attacks.push(transfer);
                             self.player_index = defender_index as i8;
@@ -137,6 +139,7 @@ impl GameManager {
                             panic!();
                         }
                     }
+                    unresponded_attack_index += 1;
                 }
 
             }
