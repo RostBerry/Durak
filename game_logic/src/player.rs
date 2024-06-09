@@ -1,8 +1,4 @@
-use std::io;
-
-use ansi_term::Color;
-
-use crate::{card::Card, game_manager::Action};
+use crate::{card::Card, game_manager::Action, card_pair::{CardPair, CardPairHalf}};
 
 #[derive(Debug)]
 pub struct Player {
@@ -19,7 +15,24 @@ impl Player {
         self.all_cards.push(card);
     }
 
-    pub fn get_move_as_third(&mut self) -> Action {
+    pub fn does_have_cards(&self) -> bool {
+        !self.all_cards.is_empty()
+    }
+
+    pub fn give_card_pairs(&mut self, cards: Vec<CardPair>) {
+        for pair in cards {
+            match pair.first {
+                CardPairHalf::Empty => panic!("First pair half is empty"),
+                CardPairHalf::Filled(card) => self.give_card(card)
+            }
+            match pair.second {
+                CardPairHalf::Filled(card) => self.give_card(card),
+                CardPairHalf::Empty => {}
+            }
+        }
+    }
+
+    pub fn get_move_from_third(&mut self) -> Action {
         self.print_deck();
         println!("Type \"attack <card index>\"/\"check\"/\"resign\"");
         loop {
@@ -50,13 +63,13 @@ impl Player {
                     println!("Invalid index, please enter a valid card index.");
                     continue;
                 }
-                return Action::Attack(self.all_cards.remove(index));
+                return Action::Attack(CardPair::new(self.all_cards.remove(index)));
             }
             println!("Invalid input, please try again.");
         }
     }
 
-    pub fn get_move_as_attacker(&mut self) -> Action {
+    pub fn get_move_from_attacker(&mut self) -> Action {
         self.print_deck();
         println!("Type \"attack <card index>\"/\"resign\"");
         loop {
@@ -83,13 +96,13 @@ impl Player {
                     println!("Invalid index, please enter a valid card index.");
                     continue;
                 }
-                return Action::Attack(self.all_cards.remove(index));
+                return Action::Attack(CardPair::new(self.all_cards.remove(index)));
             }
             println!("Invalid input, please try again.");
         }
     }
 
-    pub fn get_move_as_defender(&mut self, can_be_defended: bool, can_be_transfered: bool) -> Action {
+    pub fn get_move_from_defender(&mut self, can_be_defended: bool, can_be_transfered: bool) -> Action {
         self.print_deck();
         println!("Type \"respond <card index>\"/\"transfer <card index>\"/\"take\"/\"resign\"");
         loop {
@@ -147,7 +160,7 @@ impl Player {
                     println!("Invalid index, please enter a valid card index.");
                     continue;
                 }
-                return Action::Transfer(self.all_cards.remove(index));
+                return Action::Transfer(CardPair::new(self.all_cards.remove(index)));
             }
             println!("Invalid input, please try again.");
         }

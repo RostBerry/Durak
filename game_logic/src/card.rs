@@ -1,7 +1,7 @@
 use core::fmt;
-use std::{collections::{hash_map, HashMap}, fmt::format, ops::Index};
+use std::ops::Index;
 
-use ansi_term::{ANSIGenericString, Color};
+use ansi_term::Color;
 
 
 
@@ -10,8 +10,8 @@ pub struct Card {
     value: u8, /*
     value looks like this:
 
-         suit  trump buf  number
-    0     11       0       1111
+          suit  number
+    00     11    1111
      */
     output_rows: [String; 11], // contains what user will see as representation of the card in terminal
 }
@@ -25,48 +25,20 @@ pub enum CardCount {
 impl Card {
 
     const NUMBER_MASK: u8 = 0b00001111; //all bits except the card number set to 0
-    const NUMBER_MASK_NEGATIVE: u8 = 0b11110000; //all bits except the card number set to 1
-    const SUIT_MASK: u8 = 0b01100000; //all bits except the card suit set to 0
-    const SUIT_MASK_NEGATIVE: u8 = 0b10011111; //all bits except the card suit set to 1
+    const SUIT_MASK: u8 = 0b00110000; //all bits except the card suit set to 0
+    const SUIT_MASK_NEGATIVE: u8 = 0b11001111; //all bits except the card suit set to 1
 
     const SUITS: [&'static str; 4] = ["clubs", "spades", "hearts", "diamonds"];
     const NAMES: [&'static str; 13] = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
 
     const BIN_TO_SUIT: [&'static str; 4] = ["♣", "♠", "♥", "♦"];
 
-
-    fn clear_number(&mut self) {
-        self.value &= Self::NUMBER_MASK_NEGATIVE;
-    }
-
-    fn clear_suit(&mut self) {
-        self.value &= Self::SUIT_MASK_NEGATIVE;
-    }
-
-    pub fn num_to_suit(number: &u8) -> u8 {
-        number << 5
-    }
-
-    pub fn bool_to_trump(is_trump: &bool) -> u8 {
-        if *is_trump { 1 << 4 } else { 0 }
-    }
-
-    pub fn set_number(&mut self, number: u8) {
-        self.clear_number();
-        self.value |= number;
-    }
-
-    pub fn set_suit(&mut self, suit: u8) {
-        self.clear_suit();
-        self.value |= suit;
-    }
-
     pub fn number(&self) -> u8 {
         self.value & Self::NUMBER_MASK
     }
 
     pub fn suit(&self) -> u8 {
-        (self.value & Self::SUIT_MASK) >> 5
+        (self.value & Self::SUIT_MASK) >> 4
     }
 
     pub fn new() -> Card {
@@ -81,8 +53,8 @@ impl Card {
         card
     }
 
-    pub fn from_args(suit: &u8, number: &u8) -> Card {
-        let mut card: Card = Card {value: Self::num_to_suit(suit) | Self::bool_to_trump(&false) | number, output_rows: Default::default()};
+    pub fn from_args(suit: u8, number: u8) -> Card {
+        let mut card: Card = Card {value: suit << 4 | number, output_rows: Default::default()};
         card.generate_output_rows();
         card
 
@@ -131,25 +103,25 @@ impl Card {
 
 }
 
-impl PartialEq for Card {
-    fn eq(&self, _other: &Self) -> bool {
-        false
-    }
-}
+// impl PartialEq for Card {
+//     fn eq(&self, _other: &Self) -> bool {
+//         false
+//     }
+// }
 
-impl Eq for Card {}
+// impl Eq for Card {}
 
-impl PartialOrd for Card {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some((self.value & Self::SUIT_MASK_NEGATIVE).cmp(&(other.value & Self::SUIT_MASK_NEGATIVE)))
-    }
-}
+// impl PartialOrd for Card {
+//     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+//         Some((self.value & Self::SUIT_MASK_NEGATIVE).cmp(&(other.value & Self::SUIT_MASK_NEGATIVE)))
+//     }
+// }
 
-impl Ord for Card {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        (self.value & Self::SUIT_MASK_NEGATIVE).cmp(&(other.value & Self::SUIT_MASK_NEGATIVE))
-    }
-}
+// impl Ord for Card {
+//     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+//         (self.value & Self::SUIT_MASK_NEGATIVE).cmp(&(other.value & Self::SUIT_MASK_NEGATIVE))
+//     }
+// }
 
 impl fmt::Display for Card {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -162,5 +134,23 @@ impl Index<usize> for Card {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.output_rows[index]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    const TEST_CARD_VALUE: u8 = 0b00101100;
+    const SECOND_CARD_VALUE: u8 = 0b00111000;
+
+    #[test]
+    fn test_getters() {
+        let card: Card = Card::from_value(TEST_CARD_VALUE);
+        assert_eq!(card.number(), 12);
+        assert_eq!(card.suit(), 2);
+    }
+
+    fn test_comparison() {
+        let card: Card = Card::from_value(TEST_CARD_VALUE);
     }
 }

@@ -1,0 +1,1 @@
+D:\Documents\Durak\game_logic\target\debug\libgame_logic.rlib: D:\Documents\Durak\game_logic\src\card.rs D:\Documents\Durak\game_logic\src\card_pair.rs D:\Documents\Durak\game_logic\src\game_manager.rs D:\Documents\Durak\game_logic\src\lib.rs D:\Documents\Durak\game_logic\src\player.rs
